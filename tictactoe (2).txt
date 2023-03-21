@@ -1,0 +1,199 @@
+#include <graphics.h>
+#include <stdio.h>
+#include <dos.h>
+
+const int SCREEN_WIDTH = 640;
+const int SCREEN_HEIGHT = 480;
+const int BOARD_SIZE = 3;
+const int CELL_SIZE = 100;
+const int CELL_MARGIN = 10;
+
+enum Player { NONE, PLAYER1, PLAYER2 };
+
+struct Cell
+{
+    Player player;
+    int x;
+    int y;
+};
+
+void draw_board(Cell board[][BOARD_SIZE])
+{
+    cleardevice();
+
+    setcolor(BLACK);
+
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            int x = j * (CELL_SIZE + CELL_MARGIN) + CELL_MARGIN;
+            int y = i * (CELL_SIZE + CELL_MARGIN) + CELL_MARGIN;
+            setlinestyle(0, 0, 5);
+            rectangle(x, y, x + CELL_SIZE, y + CELL_SIZE);
+
+            if (board[i][j].player == Player::PLAYER1)
+            {
+                line(x + CELL_MARGIN, y + CELL_MARGIN, x + CELL_SIZE - CELL_MARGIN, y + CELL_SIZE - CELL_MARGIN);
+                line(x + CELL_MARGIN, y + CELL_SIZE - CELL_MARGIN, x + CELL_SIZE - CELL_MARGIN, y + CELL_MARGIN);
+            }
+            else if (board[i][j].player == Player::PLAYER2)
+            {
+                circle(x + CELL_SIZE / 2, y + CELL_SIZE / 2, CELL_SIZE / 2 - CELL_MARGIN);
+            }
+        }
+    }
+}
+
+bool check_win(Cell board[][BOARD_SIZE], Player player)
+{
+    
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        bool win = true;
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            if (board[i][j].player != player)
+            {
+                win = false;
+                break;
+            }
+        }
+        if (win)
+        {
+            return true;
+        }
+    }
+
+    
+    for (int j = 0; j < BOARD_SIZE; j++)
+    {
+        bool win = true;
+        for (int i = 0; i < BOARD_SIZE; i++)
+        {
+            if (board[i][j].player != player)
+            {
+                win = false;
+                break;
+            }
+        }
+        if (win)
+        {
+            return true;
+        }
+    }
+
+    
+    bool win = true;
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        if (board[i][i].player != player)
+        {
+            win = false;
+            break;
+        }
+    }
+    if (win)
+    {
+        return true;
+    }
+
+    
+    win = true;
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        if (board[i][BOARD_SIZE - 1 - i].player != player)
+        {
+            win = false;
+            break;
+        }
+    }
+    if (win)
+    {
+        return true;
+    }
+
+    return false;
+}
+
+int main()
+{
+    
+    initwindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Tic Tac Toe Game by HAMMAD");
+    setbkcolor(CYAN);
+   
+
+    Cell board[BOARD_SIZE][BOARD_SIZE];
+    for (int i = 0; i < BOARD_SIZE; i++)
+    {
+        for (int j = 0; j < BOARD_SIZE; j++)
+        {
+            board[i][j].player = Player::NONE;
+            board[i][j].x = j * (CELL_SIZE + CELL_MARGIN) + CELL_MARGIN;
+            board[i][j].y = i * (CELL_SIZE + CELL_MARGIN) + CELL_MARGIN;
+        }
+    }
+
+    
+    Player player = Player::PLAYER1;
+    bool game_over = false;
+    while (!game_over)
+    {
+       
+        draw_board(board);
+
+        
+        int x, y;
+        while (!ismouseclick(WM_LBUTTONDOWN))
+        {
+            delay(100);
+        }
+        getmouseclick(WM_LBUTTONDOWN, x, y);
+
+        
+        int row = -1, col = -1;
+        for (int i = 0; i < BOARD_SIZE; i++)
+        {
+            for (int j = 0; j < BOARD_SIZE; j++)
+            {
+                if (x >= board[i][j].x && x <= board[i][j].x + CELL_SIZE &&
+                    y >= board[i][j].y && y <= board[i][j].y + CELL_SIZE &&
+                    board[i][j].player == Player::NONE)
+                {
+                    row = i;
+                    col = j;
+                    break;
+                }
+            }
+            if (row != -1)
+            {
+                break;
+            }
+        }
+
+        
+        if (row != -1 && col != -1)
+        {
+            board[row][col].player = player;
+            if (check_win(board, player))
+            {
+                game_over = true;
+            }
+            player = (player == Player::PLAYER1 ? Player::PLAYER2 : Player::PLAYER1);
+        }
+    }
+
+    
+    cleardevice();
+    settextstyle(BOLD_FONT, HORIZ_DIR, 5);
+    setcolor(BLACK);
+    outtextxy(SCREEN_WIDTH / 2 - textwidth("PLAYER X WINS") / 2, SCREEN_HEIGHT / 2 - textheight("X") , (char*)(player == Player::PLAYER1 ? "PLAYER O WINS" : "PLAYER X WINS"));
+
+    
+    getch();
+
+  
+    closegraph();
+
+    return 0;
+}
